@@ -10,7 +10,7 @@ Key Features:
 - Extracts YAML frontmatter (title, date, etc.)
 - Generates unique blog IDs from title and date
 - Creates individual JSON files for each blog post
-- Maintains a master blogs.json index file
+- Maintains a master blogs.yaml index file
 - Handles batch conversion of all markdown files
 
 Usage:
@@ -20,7 +20,7 @@ Examples:
     # Convert a single post
     python3 convert-blog.py content/blogs/my-new-post.md
 
-    # Convert and auto-update blogs.json index
+    # Convert and auto-update blogs.yaml index
     python3 convert-blog.py content/blogs/my-new-post.md --update-index
 
     # Convert all markdown files in the blogs directory
@@ -34,10 +34,16 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+try:
+    import yaml
+except ImportError:
+    print("Error: PyYAML is required. Install it with: pip install pyyaml")
+    sys.exit(1)
+
 # Configuration constants
 DEFAULT_BLOGS_DIR = "content/blogs"
 DEFAULT_EXCERPT_LENGTH = 200
-BLOG_INDEX_FILENAME = "blogs.json"
+BLOG_INDEX_FILENAME = "blogs.yaml"
 
 
 def parse_yaml_frontmatter(markdown_content):
@@ -236,7 +242,7 @@ def convert_markdown_to_json(markdown_file_path, output_directory=None):
         "date": post_date,
         "excerpt": "",  # Left blank for manual editing
         "thumbnail": "",  # Left blank for manual editing
-        "contentFile": f"content/blogs/{json_filename}",
+        "content_file": f"content/blogs/{json_filename}",
     }
 
     return blog_metadata
@@ -244,7 +250,7 @@ def convert_markdown_to_json(markdown_file_path, output_directory=None):
 
 def update_blogs_index_file(new_blog_metadata, index_file_path=None):
     """
-    Update the master blogs.json index file with new or updated blog metadata.
+    Update the master blogs.yaml index file with new or updated blog metadata.
 
     This function:
     1. Loads existing blogs from the index file
@@ -254,8 +260,8 @@ def update_blogs_index_file(new_blog_metadata, index_file_path=None):
 
     Args:
         new_blog_metadata (dict): Blog metadata to add/update
-        index_file_path (str, optional): Path to blogs.json.
-                                       Defaults to "content/blogs/blogs.json"
+        index_file_path (str, optional): Path to blogs.yaml.
+                                       Defaults to "content/blogs/blogs.yaml"
     """
     if index_file_path is None:
         index_file_path = f"{DEFAULT_BLOGS_DIR}/{BLOG_INDEX_FILENAME}"
@@ -267,7 +273,7 @@ def update_blogs_index_file(new_blog_metadata, index_file_path=None):
     if index_path.exists():
         try:
             with open(index_path, "r", encoding="utf-8") as file:
-                existing_blogs = json.load(file)
+                existing_blogs = yaml.safe_load(file) or []
         except Exception as error:
             print(f"⚠️ Warning: Error reading existing index file: {error}")
             existing_blogs = []
@@ -296,7 +302,13 @@ def update_blogs_index_file(new_blog_metadata, index_file_path=None):
         index_path.parent.mkdir(parents=True, exist_ok=True)
 
         with open(index_path, "w", encoding="utf-8") as file:
-            json.dump(existing_blogs, file, indent=2, ensure_ascii=False)
+            yaml.dump(
+                existing_blogs,
+                file,
+                default_flow_style=False,
+                allow_unicode=True,
+                sort_keys=False,
+            )
         print(f"✅ Updated index file: {index_file_path}")
     except Exception as error:
         print(f"❌ Error updating index file: {error}")
@@ -307,7 +319,7 @@ def batch_convert_all_markdown_files(blogs_directory=DEFAULT_BLOGS_DIR):
     Convert all markdown files in a directory to JSON format.
 
     This function finds all .md files in the specified directory,
-    converts them to JSON, and creates a comprehensive blogs.json index.
+    converts them to JSON, and creates a comprehensive blogs.yaml index.
 
     Args:
         blogs_directory (str): Directory containing markdown blog files
@@ -349,7 +361,13 @@ def batch_convert_all_markdown_files(blogs_directory=DEFAULT_BLOGS_DIR):
 
         try:
             with open(index_file_path, "w", encoding="utf-8") as file:
-                json.dump(all_blog_metadata, file, indent=2, ensure_ascii=False)
+                yaml.dump(
+                    all_blog_metadata,
+                    file,
+                    default_flow_style=False,
+                    allow_unicode=True,
+                    sort_keys=False,
+                )
 
             print(f"✅ Successfully converted {successful_conversions} posts")
             print(
@@ -369,7 +387,7 @@ def main():
 
     Command line options:
     - --convert-all: Convert all markdown files in the blogs directory
-    - --update-index or -u: Update the blogs.json index after conversion
+    - --update-index or -u: Update the blogs.yaml index after conversion
     """
     # Show help if no arguments provided
     if len(sys.argv) < 2:

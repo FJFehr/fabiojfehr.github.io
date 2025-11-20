@@ -1,0 +1,197 @@
+# Site Configuration
+# This file contains all site metadata, layout, contacts, and design settings
+
+# ===========================
+# Site Metadata
+# ===========================
+site:
+  name: "Fabio J. Fehr"
+  footer_name: "Fabio J. Fehr"
+  role:
+    title: "Postdoctoral Researcher"
+    affiliation: "Oxford University, TVG"
+
+# ===========================
+# Layout & Navigation
+# ===========================
+layout:
+  header:
+    navigation:
+      - label: "Experience"
+        href: "#timeline"
+      - label: "Highlights"
+        href: "#media-heading"
+      - label: "Publications"
+        href: "#publications-heading"
+      - label: "Blog"
+        href: "#blog-heading"
+  
+  sections:
+    timeline:
+      title: "Timeline"
+    media:
+      title: "Highlights"
+    publications:
+      title: "Selected Publications"
+    blog:
+      title: "Fablogio"
+  
+  footer:
+    year: 2025
+    tagline: "Powered entirely by vibe coding and groovy tunes ☕️🎶"
+
+# ===========================
+# Contact & Social Links
+# ===========================
+contacts:
+  - name: "Email"
+    icon: "✉️"
+    url: "mailto:fabiofehr96@gmail.com"
+    display: "fabiofehr96@gmail.com"
+  
+  - name: "Google Scholar"
+    icon: "content/site/icons/google-scholar-svgrepo-com.svg"
+    url: "https://scholar.google.com/citations?user=WaZWY0wAAAAJ&hl=en"
+    display: "Google Scholar"
+    is_image: true
+  
+  - name: "LinkedIn"
+    icon: "content/site/icons/linkedin-svgrepo-com.svg"
+    url: "https://www.linkedin.com/in/fabio-j-fehr/"
+    display: "LinkedIn"
+    is_image: true
+  
+  - name: "GitHub"
+    icon: "content/site/icons/github-svgrepo-com.svg"
+    url: "https://github.com/FJFehr"
+    display: "GitHub"
+    is_image: true
+  
+  - name: "Twitter"
+    icon: "𝕏"
+    url: "https://twitter.com/FabioFehr"
+    display: "Twitter"
+  
+  - name: "YouTube"
+    icon: "content/site/icons/youtube-svgrepo-com.svg"
+    url: "https://www.youtube.com/@FabioJFehr"
+    display: "YouTube"
+    is_image: true
+  
+  - name: "Instagram"
+    icon: "content/site/icons/instagram-2016-logo-svgrepo-com.svg"
+    url: "https://www.instagram.com/fabio_j_fehr/"
+    display: "Instagram"
+    is_image: true
+  
+  - name: "Spotify"
+    icon: "content/site/icons/spotify-color-svgrepo-com.svg"
+    url: "https://open.spotify.com/user/rsb5wsunuryza4ziszf8viphz?si=6d07fad53a7948e9"
+    display: "Spotify"
+    is_image: true
+
+# ===========================
+# Design System
+# ===========================
+design:
+  # Layout dimensions
+  layout:
+    max_width: 1100px
+    padding:
+      horizontal: 40px
+      vertical: 40px
+  
+  # Typography
+  typography:
+    body:
+      font_size: 17px
+      line_height: 1.7
+      font_family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial"
+      color:
+        light: "#0a0a0a"
+        dark: "#e0e0e0"
+    
+    heading:
+      name:  # Site name in header
+        font_size: 32px
+        font_weight: 700
+        letter_spacing: "-0.02em"
+      section_title:  # Section titles (Publications, Contacts, etc.)
+        font_size: 22px
+        font_weight: 700
+    
+    links:
+      font_size: 14px
+      color:
+        light: "#666"
+        dark: "#a0a0a0"
+  
+  # Spacing
+  spacing:
+    header:
+      margin_top: 70px
+      margin_bottom: 70px
+    profile_section:
+      margin_top: 40px
+      margin_bottom: 40px
+      gap: 16px  # Gap between profile image and text
+    publication_section:
+      margin_top: 40px
+      margin_bottom: 40px
+      publication_margin_bottom: 12px  # Gap between publication items
+    contact_section:
+      margin_top: 40px
+      margin_bottom: 40px
+    footer:
+      margin_top: 60px
+      padding_bottom: 40px
+  
+  # Images
+  images:
+    profile_picture:
+      width: 180px
+      border_radius: "50%"  # Circular
+    publication_thumbnail:
+      width: 180px
+      height: 180px
+      border_radius: "6px"
+  
+  # Social links styling
+  social_links:
+    button:
+      size: 32px  # Width and height
+      border_radius: "50%"  # Circular
+    icon:
+      width: 18px
+      height: 18px
+      font_size: 20px  # For emoji icons
+    gap: 12px  # Space between buttons
+    spacing:
+      margin_top: 16px  # Gap between profile picture and social links
+  
+  # Colors
+  colors:
+    light_mode:
+      background: "#fff"
+      text: "#0a0a0a"
+      muted: "#666"
+      border: "#e0e0e0"
+      hover: "#ffe4cc"  # Peach highlight for hover effects
+      link: "#ff9966"   # Darker orange for links
+    
+    dark_mode:
+      background: "#1a1a1a"
+      text: "#e0e0e0"
+      muted: "#a0a0a0"
+      border: "#333"
+      hover: "#6a4c93"  # Light purple for hover effects
+      link: "#9370db"   # Medium purple for links
+      social_background: "#2a2a2a"
+    
+    accent:
+      conference_label: "#8C001A"  # Conference/workshop badges
+  
+  # Transitions
+  transitions:
+    duration: "0.2s"
+    easing: "ease"
