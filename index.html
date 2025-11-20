@@ -4,186 +4,260 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bruno Andreis</title>
+    
+    <!-- Stylesheets: Main styles, timeline component, and media component -->
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="timeline.css">
     <link rel="stylesheet" href="media.css">
 </head>
 <body>
+    <!-- Scroll anchor for top of page -->
     <div id="top"></div>
+    
     <main>
-    
+        <!-- ============================ -->
+        <!--           HEADER              -->
+        <!-- ============================ -->
+        <header class="header">
+            <a href="#top" class="name-link">
+                <div class="name" id="site-name">Loading…</div>
+            </a>
+            <nav class="nav-links" id="nav-links">
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">🌙</button>
+            </nav>
+        </header>
 
-    <div class="header">
-        <a href="#top" class="name-link"><div class="name" id="site-name">Loading…</div></a>
-        <div class="nav-links" id="nav-links">
-            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">🌙</button>
-        </div>
-    </div>
-
-      <section class="profile-section">
-        <div class="profile-container">
-            <div class="profile-sidebar">
-                <div class="profile-image">
-                    <img src="images/profile_picture.jpg" alt="Profile Picture">
-                    <div class="nationality-flags">🇿🇦 🇨🇭</div>
+        <!-- ============================ -->
+        <!--       PROFILE SECTION         -->
+        <!-- ============================ -->
+        <section class="profile-section">
+            <div class="profile-container">
+                <!-- Left sidebar with image, role, and social links -->
+                <aside class="profile-sidebar">
+                    <div class="profile-image">
+                        <img src="images/profile_picture.jpg" alt="Profile Picture">
+                        <div class="nationality-flags">🇿🇦 🇨🇭</div>
+                    </div>
+                    <div class="profile-role">
+                        <h3 class="role-title" id="role-title">Loading…</h3>
+                        <p class="role-affiliation" id="role-affiliation">Loading…</p>
+                    </div>
+                    <div class="profile-socials" id="profile-socials"></div>
+                </aside>
+                
+                <!-- Main profile content/bio -->
+                <div class="profile-text" id="profile-content">
+                    <p>Loading...</p>
                 </div>
-                <div class="profile-role">
-                    <h3 class="role-title" id="role-title">Loading…</h3>
-                    <p class="role-affiliation" id="role-affiliation">Loading…</p>
-                </div>
-                <div class="profile-socials" id="profile-socials"></div>
             </div>
-            <div class="profile-text" id="profile-content">
-	      <p>Loading...</p>
-            </div>
+        </section>
+        <!-- ============================ -->
+        <!--       TIMELINE SECTION        -->
+        <!-- ============================ -->
+        <section id="timeline" class="timeline-section">
+            <div id="timeline-list" class="timeline-container"></div>
+        </section>
+
+        <!-- ============================ -->
+        <!--        MEDIA SECTION          -->
+        <!-- ============================ -->
+        <div class="section-header">
+            <h1 id="media-heading">Loading…</h1>
         </div>
-	</section>
-    
-    <section id="timeline" class="timeline-section">
-        <div id="timeline-list" class="timeline-container"></div>
-    </section>
 
-    <header>
-        <h1 id="media-heading">Loading…</h1>
-    </header>
+        <section id="media" class="media-section">
+            <div id="media-list" class="media-grid"></div>
+        </section>
 
-    <section id="media" class="media-section">
-        <div id="media-list" class="media-grid"></div>
-    </section>
-
-    <header>
-        <h1 id="publications-heading">Loading…</h1>
-        <p class="publications-note">Please see my <a href="https://scholar.google.com/citations?user=WaZWY0wAAAAJ&hl=en" target="_blank">Google Scholar</a> for a complete list of publications.</p>
-    </header>
+        <!-- ============================ -->
+        <!--    PUBLICATIONS SECTION       -->
+        <!-- ============================ -->
+        <div class="section-header">
+            <h1 id="publications-heading">Loading…</h1>
+            <p class="publications-note">
+                Please see my <a href="https://scholar.google.com/citations?user=WaZWY0wAAAAJ&hl=en" target="_blank">Google Scholar</a> 
+                for a complete list of publications.
+            </p>
+        </div>
 
         <section id="pubs" class="publications">
-	  <div id="publications-list"></div>
+            <div id="publications-list"></div>
         </section>
 
-        <header>
-        <h1 id="blog-heading">Loading…</h1>
-        <p style="text-align: center; color: var(--muted-color); font-size: 16px; margin-top: 8px; max-width: 600px; margin-left: auto; margin-right: auto;">Welcome to my blog, where I write about the things.</p>
-    </header>
+        <!-- ============================ -->
+        <!--         BLOG SECTION          -->
+        <!-- ============================ -->
+        <div class="section-header">
+            <h1 id="blog-heading">Loading…</h1>
+            <p style="text-align: center; color: var(--muted-color); font-size: 16px; margin-top: 8px; max-width: 600px; margin-left: auto; margin-right: auto;">
+                Welcome to my blog, where I write about the things.
+            </p>
+        </div>
 
         <section id="blog" class="blog-section">
-          <div id="blog-list"></div>
+            <div id="blog-list"></div>
         </section>
-    
+    </main>
 
+    <!-- ============================ -->
+    <!--           FOOTER              -->
+    <!-- ============================ -->
     <footer>
         <p>&copy; <span id="footer-year">2025</span> <span id="footer-name">Loading…</span>. All rights reserved.</p>
         <p id="footer-tagline" style="margin-top: 8px; font-style: italic;">Loading…</p>
     </footer>
 
+    <!-- ============================ -->
+    <!--         JAVASCRIPT            -->
+    <!-- ============================ -->
     <script>
-        // Load site metadata (name, role, affiliation) from site.json
-        async function loadSiteMeta() {
-            try {
-                const resp = await fetch('content/profile/site.json');
-                const site = await resp.json();
-                const siteNameEl = document.getElementById('site-name');
-                const roleTitleEl = document.getElementById('role-title');
-                const roleAffEl = document.getElementById('role-affiliation');
-                const footerNameEl = document.getElementById('footer-name');
+        /**
+         * ===================================================================
+         *                    CONTENT LOADING FUNCTIONS
+         * ===================================================================
+         */
 
-                if (siteNameEl && site.siteName) {
-                    siteNameEl.textContent = site.siteName;
-                    document.title = site.siteName;
+        /**
+         * Load site metadata (name, role, affiliation) from site.json
+         * Updates the site name, role title, affiliation, and footer name
+         */
+        async function loadSiteMetadata() {
+            try {
+                const response = await fetch('content/profile/site.json');
+                const siteData = await response.json();
+                
+                // Update site name in header and page title
+                const siteNameElement = document.getElementById('site-name');
+                if (siteNameElement && siteData.siteName) {
+                    siteNameElement.textContent = siteData.siteName;
+                    document.title = siteData.siteName;
                 }
-                if (roleTitleEl && site.role && site.role.title) roleTitleEl.textContent = site.role.title;
-                if (roleAffEl && site.role && site.role.affiliation) roleAffEl.textContent = site.role.affiliation;
-                if (footerNameEl && site.footerName) footerNameEl.textContent = site.footerName;
+                
+                // Update role information
+                const roleTitleElement = document.getElementById('role-title');
+                const roleAffiliationElement = document.getElementById('role-affiliation');
+                if (roleTitleElement && siteData.role?.title) {
+                    roleTitleElement.textContent = siteData.role.title;
+                }
+                if (roleAffiliationElement && siteData.role?.affiliation) {
+                    roleAffiliationElement.textContent = siteData.role.affiliation;
+                }
+                
+                // Update footer name
+                const footerNameElement = document.getElementById('footer-name');
+                if (footerNameElement && siteData.footerName) {
+                    footerNameElement.textContent = siteData.footerName;
+                }
             } catch (error) {
                 console.error('Error loading site metadata:', error);
             }
         }
 
-        // Load layout config for footer year only
-        async function loadLayoutConfig() {
+        /**
+         * Load layout configuration for navigation and section titles
+         * Updates navigation links, section headings, and footer content
+         */
+        async function loadLayoutConfiguration() {
             try {
-                const resp = await fetch('config/layout.json');
-                const layout = await resp.json();
+                const response = await fetch('config/layout.json');
+                const layoutConfig = await response.json();
                 
-                // Build navigation
-                const navLinksEl = document.getElementById('nav-links');
-                if (navLinksEl && layout.header.navigation) {
-                    // Clear existing (except theme toggle)
-                    const themeBtn = navLinksEl.querySelector('#theme-toggle');
-                    navLinksEl.innerHTML = '';
+                // Build navigation menu
+                const navLinksElement = document.getElementById('nav-links');
+                if (navLinksElement && layoutConfig.header?.navigation) {
+                    // Preserve theme toggle button
+                    const themeButton = navLinksElement.querySelector('#theme-toggle');
+                    navLinksElement.innerHTML = '';
                     
-                    // Add nav links
-                    layout.header.navigation.forEach(nav => {
-                        const link = document.createElement('a');
-                        link.href = nav.href;
-                        link.innerHTML = nav.label; // Use innerHTML to support HTML tags like <b>
-                        navLinksEl.appendChild(link);
+                    // Add navigation links
+                    layoutConfig.header.navigation.forEach(navItem => {
+                        const linkElement = document.createElement('a');
+                        linkElement.href = navItem.href;
+                        linkElement.innerHTML = navItem.label; // Use innerHTML to support HTML tags like <b>
+                        navLinksElement.appendChild(linkElement);
                     });
                     
-                    // Re-add theme toggle
-                    if (themeBtn) navLinksEl.appendChild(themeBtn);
+                    // Re-add theme toggle button
+                    if (themeButton) {
+                        navLinksElement.appendChild(themeButton);
+                    }
                 }
                 
-                // Set section titles
-                const pubsHeadingEl = document.getElementById('publications-heading');
-                const blogHeadingEl = document.getElementById('blog-heading');
-                const mediaHeadingEl = document.getElementById('media-heading');
-                if (pubsHeadingEl && layout.sections.publications.title) {
-                    pubsHeadingEl.innerHTML = layout.sections.publications.title;
-                }
-                if (blogHeadingEl && layout.sections.blog.title) {
-                    blogHeadingEl.innerHTML = layout.sections.blog.title;
-                }
-                if (mediaHeadingEl && layout.sections.media && layout.sections.media.title) {
-                    mediaHeadingEl.innerHTML = layout.sections.media.title;
-                }
+                // Update section titles
+                const updateSectionTitle = (elementId, configPath) => {
+                    const element = document.getElementById(elementId);
+                    const title = configPath.split('.').reduce((obj, key) => obj?.[key], layoutConfig);
+                    if (element && title) {
+                        element.innerHTML = title;
+                    }
+                };
                 
-                // Set footer tagline
-                const footerTaglineEl = document.getElementById('footer-tagline');
-                if (footerTaglineEl && layout.footer.tagline) {
-                    footerTaglineEl.textContent = layout.footer.tagline;
-                }
+                updateSectionTitle('publications-heading', 'sections.publications.title');
+                updateSectionTitle('blog-heading', 'sections.blog.title');
+                updateSectionTitle('media-heading', 'sections.media.title');
                 
-                // Set footer year
-                const footerYearEl = document.getElementById('footer-year');
-                if (footerYearEl && layout.footer.year) {
-                    footerYearEl.textContent = layout.footer.year;
+                // Update footer content
+                const footerTaglineElement = document.getElementById('footer-tagline');
+                const footerYearElement = document.getElementById('footer-year');
+                
+                if (footerTaglineElement && layoutConfig.footer?.tagline) {
+                    footerTaglineElement.textContent = layoutConfig.footer.tagline;
                 }
+                if (footerYearElement && layoutConfig.footer?.year) {
+                    footerYearElement.textContent = layoutConfig.footer.year;
+                }
+            } catch (error) {
+                console.error('Error loading layout configuration:', error);
+            }
+        }
             } catch (error) {
                 console.error('Error loading layout config:', error);
             }
         }
 
-        // Load profile content from site metadata or fallback to markdown
+        /**
+         * Load profile content from site.json or fallback to bio.md
+         * Converts markdown formatting to HTML for display
+         */
         async function loadProfileContent() {
             try {
-                const resp = await fetch('content/profile/site.json');
-                const site = await resp.json();
+                // First try to load profile from site.json
+                const siteResponse = await fetch('content/profile/site.json');
+                const siteData = await siteResponse.json();
                 
-                if (site.profile) {
-                    // Use profile from site.json
-                    const markdown = site.profile;
-                    let html = markdown
-                        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-                        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-                        .replace(/\n\n+/g, '</p><p>')
-                        .replace(/^/, '<p>')
-                        .replace(/$/, '</p>');
-                    document.getElementById('profile-content').innerHTML = html;
+                let markdownContent;
+                
+                if (siteData.profile) {
+                    // Use profile content from site.json
+                    markdownContent = siteData.profile;
                 } else {
-                    // Fallback to bio.md if profile not in site.json
-                    const response = await fetch('content/profile/bio.md');
-                    const markdown = await response.text();
-                    let html = markdown
-                        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-                        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-                        .replace(/\n\n+/g, '</p><p>')
-                        .replace(/^/, '<p>')
-                        .replace(/$/, '</p>');
-                    document.getElementById('profile-content').innerHTML = html;
+                    // Fallback to bio.md file
+                    const bioResponse = await fetch('content/profile/bio.md');
+                    markdownContent = await bioResponse.text();
                 }
+                
+                // Convert markdown to HTML
+                const htmlContent = convertSimpleMarkdownToHtml(markdownContent);
+                document.getElementById('profile-content').innerHTML = htmlContent;
+                
             } catch (error) {
                 console.error('Error loading profile content:', error);
             }
+        }
+
+        /**
+         * Convert basic markdown formatting to HTML
+         * Handles bold text, links, and paragraph breaks
+         * @param {string} markdown - Raw markdown text
+         * @returns {string} HTML formatted text
+         */
+        function convertSimpleMarkdownToHtml(markdown) {
+            return markdown
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')  // Bold text
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')  // Links
+                .replace(/\n\n+/g, '</p><p>')  // Paragraph breaks
+                .replace(/^/, '<p>')  // Start with paragraph
+                .replace(/$/, '</p>');  // End with paragraph
         }
 
         // Load social links from JSON
