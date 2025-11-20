@@ -26,7 +26,9 @@
         }
         
         try {
-            const response = await fetch('content/site/config.yaml');
+            // Determine the correct path based on current location
+            const configPath = window.BLOG_POST_ID ? '../content/site/config.yaml' : 'content/site/config.yaml';
+            const response = await fetch(configPath);
             const yamlText = await response.text();
             siteConfig = jsyaml.load(yamlText);
             return siteConfig;
@@ -43,7 +45,13 @@
      */
     async function loadYaml(path) {
         try {
-            const response = await fetch(path);
+            // If we're in a blog post (has BLOG_POST_ID) and path starts with 'blogs/',
+            // the path is already correct (we're in blogs/ directory)
+            let adjustedPath = path;
+            if (window.BLOG_POST_ID && path.startsWith('blogs/')) {
+                adjustedPath = path.substring('blogs/'.length);
+            }
+            const response = await fetch(adjustedPath);
             const yamlText = await response.text();
             return jsyaml.load(yamlText);
         } catch (error) {
@@ -392,6 +400,19 @@ async function loadLayoutConfiguration() {
         updateSectionTitle('blog-heading', config.layout?.sections?.blog?.title);
         updateSectionTitle('media-heading', config.layout?.sections?.media?.title);
         
+        // Update blog subtitle
+        const blogSubtitleElement = document.getElementById('blog-subtitle');
+        if (blogSubtitleElement && config.layout?.sections?.blog?.subtitle) {
+            blogSubtitleElement.textContent = config.layout.sections.blog.subtitle;
+        }
+        
+        // Update publications note with Google Scholar link
+        const publicationsNoteElement = document.querySelector('.publications-note');
+        if (publicationsNoteElement && config.layout?.sections?.publications?.note && config.site?.google_scholar_url) {
+            const noteHtml = config.layout.sections.publications.note.replace('{{google_scholar_url}}', config.site.google_scholar_url);
+            publicationsNoteElement.innerHTML = noteHtml;
+        }
+        
         // Update footer content
         const footerTaglineElement = document.getElementById('footer-tagline');
         const footerYearElement = document.getElementById('footer-year');
@@ -484,6 +505,7 @@ async function loadSocialLinks() {
  */
 async function loadPublications() {
     try {
+        const config = await loadConfig();
         const publications = await loadYaml('content/publications/publications.yaml');
         const listContainer = document.getElementById('publications-list');
         
@@ -509,8 +531,10 @@ async function loadPublications() {
                   '</div>'
                 : '';
             
-            // Bold author name
-            const formattedAuthors = pub.authors.replace(/\bF\. Fehr\b/g, '<strong>F. Fehr</strong>');
+            // Bold author name using pattern from config
+            const authorPattern = config.site?.author_name_pattern || 'F. Fehr';
+            const regex = new RegExp(`\\b${authorPattern.replace('.', '\\.')}\\b`, 'g');
+            const formattedAuthors = pub.authors.replace(regex, `<strong>${authorPattern}</strong>`);
             
             return `
             <div class="publication" onclick="window.open('${pub.paper || pub.link}', '_blank', 'noopener,noreferrer')">
@@ -540,7 +564,7 @@ async function loadPublications() {
  */
 async function loadBlogs() {
     try {
-        const blogs = await loadYaml('content/blogs/blogs.yaml');
+        const blogs = await loadYaml('blogs/blogs.yaml');
         const listContainer = document.getElementById('blog-list');
         
         if (!listContainer || !blogs) return;
@@ -549,7 +573,7 @@ async function loadBlogs() {
             const formattedDate = formatDate(blog.date);
             
             return `
-            <a href="blogs.html?id=${blog.id}" style="text-decoration:none;">
+            <a href="blogs/${blog.id}.html" style="text-decoration:none;">
             <div class="blog-post">
                 <div class="blog-image">
                     <img src="${blog.thumbnail}" alt="${blog.title} cover image">
@@ -633,13 +657,11 @@ function initializeMainPage() {
 }
 
 
-/**
- * ===================================================================
- *                    BLOG PAGE FUNCTIONS (blogs.html)
- * ===================================================================
- */
-
-/**
+    /**
+     * ===================================================================
+     *                    BLOG PAGE FUNCTIONS
+     * ===================================================================
+     *//**
  * Load site metadata for blog page (simpler version)
  */
 async function loadBlogSiteMetadata() {
@@ -662,12 +684,27 @@ async function loadBlogSiteMetadata() {
 }
 
 /**
- * Load layout configuration for blog page (footer only)
+ * Load layout configuration for blog page (navigation and footer)
  */
 async function loadBlogLayoutConfiguration() {
     try {
         const config = await loadConfig();
         if (!config) return;
+        
+        // Build navigation menu (without internal page anchors)
+        const navLinksElement = document.getElementById('nav-links');
+        if (navLinksElement) {
+            // Preserve theme toggle button
+            const themeButton = navLinksElement.querySelector('#theme-toggle');
+            
+            // Clear and rebuild nav (keeping only theme toggle)
+            navLinksElement.innerHTML = '';
+            
+            // Re-add theme toggle button
+            if (themeButton) {
+                navLinksElement.appendChild(themeButton);
+            }
+        }
         
         const footerYearElement = document.getElementById('footer-year');
         const footerTaglineElement = document.getElementById('footer-tagline');
@@ -695,9 +732,13 @@ async function loadBlogLayoutConfiguration() {
  */
 async function loadBlogPost() {
     try {
-        // Get blog ID from URL query parameter
-        const urlParams = new URLSearchParams(window.location.search);
-        const blogId = urlParams.get('id');
+        // Get blog ID from window variable (for individual blog HTML files) or URL query parameter
+        let blogId = window.BLOG_POST_ID || null;
+        
+        if (!blogId) {
+            const urlParams = new URLSearchParams(window.location.search);
+            blogId = urlParams.get('id');
+        }
         
         const blogBodyElement = document.getElementById('blog-body');
         
@@ -708,8 +749,11 @@ async function loadBlogPost() {
             return;
         }
         
+        // Determine the correct path to blogs.yaml based on current location
+        const blogsYamlPath = window.BLOG_POST_ID ? 'blogs.yaml' : 'blogs/blogs.yaml';
+        
         // Load blogs.yaml to find the content file
-        const blogs = await loadYaml('content/blogs/blogs.yaml');
+        const blogs = await loadYaml(blogsYamlPath);
         
         const blog = blogs?.find(b => b.id === blogId);
         
@@ -726,16 +770,25 @@ async function loadBlogPost() {
         const pageTitleElement = document.getElementById('page-title');
         
         if (titleElement) titleElement.textContent = blog.title;
-        if (pageTitleElement) pageTitleElement.textContent = blog.title;
+        if (pageTitleElement) pageTitleElement.textContent = `🤘 Fablogio`;
         if (dateElement) {
             dateElement.textContent = formatDate(blog.date);
         }
         
-        // Load and parse content file
+        // Load and parse content
         let htmlContent;
-        if (blog.content_file) {
-            // Load JSON content
-            const contentResponse = await fetch(blog.content_file);
+        
+        // Check if we have embedded blog data (new format)
+        if (window.BLOG_POST_DATA) {
+            htmlContent = parseMarkdown(window.BLOG_POST_DATA.content);
+        } else if (blog.content_file) {
+            // Legacy: Load from separate JSON file
+            let contentPath = blog.content_file;
+            if (window.BLOG_POST_ID) {
+                contentPath = blog.content_file.replace('blogs/', '');
+            }
+            
+            const contentResponse = await fetch(contentPath);
             const contentData = await contentResponse.json();
             htmlContent = parseMarkdown(contentData.content);
         } else if (blog.markdown_file) {
@@ -744,21 +797,24 @@ async function loadBlogPost() {
             const markdownText = await markdownResponse.text();
             htmlContent = parseMarkdown(markdownText);
         } else {
-            throw new Error('No content file specified');
+            throw new Error('No content available');
         }
         
         if (blogBodyElement) {
             blogBodyElement.innerHTML = htmlContent;
             
             // Fix relative image paths for blog content
-            // Images in markdown are relative to content/blogs/ directory
-            // but blogs.html is at root, so we need to prepend the path
+            // Images in markdown are relative to blogs/ directory
             const images = blogBodyElement.querySelectorAll('img');
             images.forEach(img => {
                 const src = img.getAttribute('src');
-                // Only fix relative paths that don't already include content/blogs/
-                if (src && !src.startsWith('http') && !src.startsWith('/') && !src.includes('content/blogs/')) {
-                    img.setAttribute('src', `content/blogs/${src}`);
+                // Only fix relative paths that don't already start with http or /
+                if (src && !src.startsWith('http') && !src.startsWith('/')) {
+                    // If we're in a blog HTML file (has BLOG_POST_ID), paths are already relative to blogs/
+                    // If we're not, we need to prepend the path
+                    if (!window.BLOG_POST_ID && !src.includes('blogs/')) {
+                        img.setAttribute('src', `blogs/${src}`);
+                    }
                 }
             });
         }

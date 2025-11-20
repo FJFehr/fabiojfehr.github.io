@@ -2,14 +2,15 @@
 """
 Blog Post Converter for GitHub Pages
 
-This script converts markdown blog posts to JSON format for use with GitHub Pages.
-It extracts YAML frontmatter, processes markdown content, and generates structured JSON
-files that can be easily consumed by JavaScript on static hosting platforms.
+This script converts markdown blog posts to JSON and HTML format for use with GitHub Pages.
+It extracts YAML frontmatter, processes markdown content, generates structured JSON files,
+and creates individual HTML pages with Open Graph tags for social media sharing.
 
 Key Features:
-- Extracts YAML frontmatter (title, date, etc.)
+- Extracts YAML frontmatter (title, date, excerpt, thumbnail)
 - Generates unique blog IDs from title and date
 - Creates individual JSON files for each blog post
+- Creates individual HTML files with Open Graph meta tags
 - Maintains a master blogs.yaml index file
 - Handles batch conversion of all markdown files
 
@@ -18,12 +19,12 @@ Usage:
 
 Examples:
     # Convert a single post
-    python3 convert-blog.py content/blogs/my-new-post.md
+    python3 convert-blog.py blogs/posts/my-new-post.md
 
     # Convert and auto-update blogs.yaml index
-    python3 convert-blog.py content/blogs/my-new-post.md --update-index
+    python3 convert-blog.py blogs/posts/my-new-post.md --update-index
 
-    # Convert all markdown files in the blogs directory
+    # Convert all markdown files in the blogs/posts directory
     python3 convert-blog.py --convert-all
 """
 
@@ -41,7 +42,8 @@ except ImportError:
     sys.exit(1)
 
 # Configuration constants
-DEFAULT_BLOGS_DIR = "content/blogs"
+DEFAULT_BLOGS_DIR = "blogs"
+DEFAULT_POSTS_DIR = "blogs/posts"
 DEFAULT_EXCERPT_LENGTH = 200
 BLOG_INDEX_FILENAME = "blogs.yaml"
 
@@ -164,6 +166,102 @@ def clean_text_for_excerpt(raw_content, max_length=DEFAULT_EXCERPT_LENGTH):
         return truncated + "..."
 
 
+def generate_blog_html(blog_metadata, blog_content, output_directory=DEFAULT_BLOGS_DIR):
+    """
+    Generate a standalone HTML file for a blog post with proper OG tags and embedded content.
+
+    This function creates an individual HTML file for each blog post,
+    using _blog_template.html and injecting specific OG meta tags and blog content
+    for proper social media previews (WhatsApp, LinkedIn, etc.).
+
+    Args:
+        blog_metadata (dict): Blog metadata including id, title, date, excerpt, thumbnail
+        blog_content (str): The markdown content of the blog post
+        output_directory (str): Directory to save the HTML file
+
+    Returns:
+        str or None: Path to generated HTML file, or None if generation failed
+    """
+    try:
+        # Read the template
+        template_path = Path(output_directory) / "_blog_template.html"
+        if not template_path.exists():
+            print(f"⚠️ Warning: {template_path} not found. Skipping HTML generation.")
+            return None
+
+        with open(template_path, "r", encoding="utf-8") as file:
+            template_content = file.read()
+
+        # Extract blog metadata
+        blog_id = blog_metadata["id"]
+        title = blog_metadata["title"]
+        excerpt = blog_metadata.get("excerpt", "")
+        thumbnail = blog_metadata.get("thumbnail", "content/site/profile_picture.jpg")
+
+        # Ensure thumbnail is an absolute URL
+        if not thumbnail.startswith("http"):
+            thumbnail = f"https://fjfehr.github.io/{thumbnail}"
+
+        # Create OG meta tags for this specific blog post
+        og_tags = f"""    <!-- Open Graph / Social Media Meta Tags -->
+    <meta property="og:title" content="{title}" />
+    <meta property="og:description" content="{excerpt}" />
+    <meta property="og:url" content="https://fjfehr.github.io/blogs/{blog_id}.html" />
+    <meta property="og:type" content="article" />
+    <meta property="og:image" content="{thumbnail}" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />"""
+
+        # Replace the generic OG tags in the template with specific ones
+        og_pattern = r'    <!-- Open Graph / Social Media Meta Tags -->.*?<meta property="og:image:height"[^>]+/>'
+
+        if re.search(og_pattern, template_content, re.DOTALL):
+            updated_content = re.sub(
+                og_pattern, og_tags, template_content, flags=re.DOTALL
+            )
+        else:
+            print("⚠️ Warning: Could not find OG tags section in template")
+            return None
+
+        # Add a script to auto-load this specific blog post and embed the content
+        blog_data_json = json.dumps(
+            {
+                "title": blog_metadata["title"],
+                "date": blog_metadata["date"],
+                "content": blog_content,
+            },
+            ensure_ascii=False,
+        )
+
+        auto_load_script = f"""
+    <script>
+        // Auto-load this specific blog post
+        window.BLOG_POST_ID = '{blog_id}';
+        
+        // Embedded blog data (no need for separate JSON file!)
+        window.BLOG_POST_DATA = {blog_data_json};
+    </script>"""
+
+        # Insert the script before the closing </head> tag
+        updated_content = updated_content.replace(
+            "</head>", f"{auto_load_script}\n</head>"
+        )
+
+        # Write the HTML file
+        html_filename = f"{blog_id}.html"
+        html_output_path = Path(output_directory) / html_filename
+
+        with open(html_output_path, "w", encoding="utf-8") as file:
+            file.write(updated_content)
+
+        print(f"✅ Generated HTML: {html_filename}")
+        return str(html_output_path)
+
+    except Exception as error:
+        print(f"❌ Error generating HTML file: {error}")
+        return None
+
+
 def convert_markdown_to_json(markdown_file_path, output_directory=None):
     """
     Convert a single markdown file to JSON format for GitHub Pages.
@@ -174,7 +272,8 @@ def convert_markdown_to_json(markdown_file_path, output_directory=None):
     3. Processes the content
     4. Generates a unique blog ID
     5. Creates a JSON file with the blog data
-    6. Returns metadata for the blogs index
+    6. Generates a standalone HTML file with OG tags
+    7. Returns metadata for the blogs index
 
     Args:
         markdown_file_path (str): Path to the markdown file to convert
@@ -218,25 +317,6 @@ def convert_markdown_to_json(markdown_file_path, output_directory=None):
     post_thumbnail = frontmatter_data.get("thumbnail", "")
     unique_blog_id = create_blog_id(post_title, post_date)
 
-    # Create the blog data structure
-    blog_json_data = {
-        "title": post_title,
-        "date": post_date,
-        "content": markdown_content.strip(),
-    }
-
-    # Write JSON file
-    json_filename = f"{unique_blog_id}.json"
-    json_output_path = output_path / json_filename
-
-    try:
-        with open(json_output_path, "w", encoding="utf-8") as json_file:
-            json.dump(blog_json_data, json_file, indent=2, ensure_ascii=False)
-        print(f"✅ Converted: {input_path.name} → {json_filename}")
-    except Exception as error:
-        print(f"❌ Error writing JSON file: {error}")
-        return None
-
     # Return metadata for blogs index
     blog_metadata = {
         "id": unique_blog_id,
@@ -244,8 +324,15 @@ def convert_markdown_to_json(markdown_file_path, output_directory=None):
         "date": post_date,
         "excerpt": post_excerpt,
         "thumbnail": post_thumbnail,
-        "content_file": f"content/blogs/{json_filename}",
     }
+
+    # Generate standalone HTML file with OG tags and embedded content (save to blogs/ directory)
+    html_path = generate_blog_html(
+        blog_metadata, markdown_content.strip(), DEFAULT_BLOGS_DIR
+    )
+
+    if html_path:
+        print(f"✅ Converted: {input_path.name} → {unique_blog_id}.html")
 
     return blog_metadata
 
@@ -316,7 +403,7 @@ def update_blogs_index_file(new_blog_metadata, index_file_path=None):
         print(f"❌ Error updating index file: {error}")
 
 
-def batch_convert_all_markdown_files(blogs_directory=DEFAULT_BLOGS_DIR):
+def batch_convert_all_markdown_files(posts_directory=DEFAULT_POSTS_DIR):
     """
     Convert all markdown files in a directory to JSON format.
 
@@ -324,20 +411,20 @@ def batch_convert_all_markdown_files(blogs_directory=DEFAULT_BLOGS_DIR):
     converts them to JSON, and creates a comprehensive blogs.yaml index.
 
     Args:
-        blogs_directory (str): Directory containing markdown blog files
+        posts_directory (str): Directory containing markdown blog files
     """
-    blogs_path = Path(blogs_directory)
+    posts_path = Path(posts_directory)
 
     # Validate directory exists
-    if not blogs_path.exists():
-        print(f"❌ Error: Directory {blogs_directory} does not exist")
+    if not posts_path.exists():
+        print(f"❌ Error: Directory {posts_directory} does not exist")
         return
 
     # Find all markdown files
-    markdown_files = list(blogs_path.glob("*.md"))
+    markdown_files = list(posts_path.glob("*.md"))
 
     if not markdown_files:
-        print(f"📝 No markdown files found in {blogs_directory}")
+        print(f"📝 No markdown files found in {posts_directory}")
         return
 
     print(f"🔄 Found {len(markdown_files)} markdown files to convert...")
@@ -347,7 +434,7 @@ def batch_convert_all_markdown_files(blogs_directory=DEFAULT_BLOGS_DIR):
     successful_conversions = 0
 
     for markdown_file in markdown_files:
-        blog_metadata = convert_markdown_to_json(markdown_file, blogs_path)
+        blog_metadata = convert_markdown_to_json(markdown_file, DEFAULT_BLOGS_DIR)
         if blog_metadata:
             all_blog_metadata.append(blog_metadata)
             successful_conversions += 1
@@ -356,7 +443,7 @@ def batch_convert_all_markdown_files(blogs_directory=DEFAULT_BLOGS_DIR):
 
     # Create comprehensive blogs index
     if all_blog_metadata:
-        index_file_path = blogs_path / BLOG_INDEX_FILENAME
+        index_file_path = Path(DEFAULT_BLOGS_DIR) / BLOG_INDEX_FILENAME
 
         # Sort by date (newest first)
         all_blog_metadata.sort(key=lambda blog: blog["date"], reverse=True)
@@ -405,8 +492,8 @@ def main():
     markdown_file_path = sys.argv[1]
     should_update_index = "--update-index" in sys.argv or "-u" in sys.argv
 
-    # Convert the specified file
-    blog_metadata = convert_markdown_to_json(markdown_file_path)
+    # Convert the specified file (output to blogs/ directory)
+    blog_metadata = convert_markdown_to_json(markdown_file_path, DEFAULT_BLOGS_DIR)
 
     # Update the blogs index if requested and conversion was successful
     if blog_metadata and should_update_index:
